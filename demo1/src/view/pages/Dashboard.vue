@@ -1,93 +1,200 @@
 <template>
-  <div>
-    <!--begin::Dashboard-->
-    <div class="row">
-      <div class="col-xxl-4">
-        <MixedWidget1></MixedWidget1>
-      </div>
-      <div class="col-xxl-4">
-        <ListWidget9></ListWidget9>
-      </div>
-      <div class="col-xxl-4">
-        <StatsWidget7></StatsWidget7>
-        <StatsWidget12></StatsWidget12>
-      </div>
-
-      <div class="col-xxl-4 order-1 order-xxl-1">
-        <ListWidget1></ListWidget1>
-      </div>
-      <div class="col-xxl-8 order-2 order-xxl-1">
-        <AdvancedTableWidget2></AdvancedTableWidget2>
-      </div>
-
-      <div class="col-xxl-4 order-1 order-xxl-2">
-        <ListWidget3></ListWidget3>
-      </div>
-      <div class="col-xxl-4 order-1 order-xxl-2">
-        <ListWidget4></ListWidget4>
-      </div>
-      <div class="col-lg-12 col-xxl-4 order-1 order-xxl-2">
-        <ListWidget8></ListWidget8>
-      </div>
+  <div data-app>
+    <v-simple-table fixed-header height="300px">
+      <template v-slot:default>
+        <thead>
+          <tr>
+            <th class="text-left">Nombre</th>
+            <th class="text-left">Apellidos</th>
+            <th class="text-left">Email</th>
+            <th class="text-left">Pais</th>
+            <th class="text-left">Editar</th>
+            <th class="text-left">Eliminar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in desserts" :key="item.Nombre">
+            <td>{{ item.Name }}</td>
+            <td>{{ item.LastName }}</td>
+            <td>{{ item.Email }}</td>
+            <td>{{ item.Country }}</td>
+            <td>
+              <v-btn icon @click="openModalUpdate(item)">
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+            </td>
+            <td>
+              <v-btn icon @click="deleteEvent(item)">
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </td>
+          </tr>
+        </tbody>
+      </template>
+    </v-simple-table>
+    <div class="mr-4">
+      <v-dialog v-model="dialog">
+        <v-card>
+          <v-card-title class="headline grey lighten-2" primary-title>{{nameModal}}</v-card-title>
+          <v-container>
+            <v-form
+              @submit.prevent="modelDialog === 'addEvent' ? addEvent() : updateEvent(updateItem)"
+            >
+              <v-text-field type="text" label="Agregar Nombre" required v-model="name"></v-text-field>
+              <v-text-field type="text" label="Agregar Apellido" required v-model="lastName"></v-text-field>
+              <v-text-field type="text" label="Agregar E-mail" required v-model="email"></v-text-field>
+              <v-text-field type="text" label="Agregar Pais" required v-model="country"></v-text-field>
+              <v-btn
+                type="submit"
+                color="primary"
+                dark
+                class="mr-4"
+                @click.stop="dialog=false"
+              >{{nameButton}}</v-btn>
+            </v-form>
+          </v-container>
+        </v-card>
+      </v-dialog>
     </div>
-    <!--end::Dashboard-->
+    <br />
+    <div class="mr-4">
+      <v-btn color="primary" dark large @click="openModalAdd">Agregar</v-btn>
+    </div>
   </div>
 </template>
 
 <script>
+// import CRUDTable from "../content/widgets/CRUDTable";
 import { SET_BREADCRUMB } from "@/core/services/store/breadcrumbs.module";
-import AdvancedTableWidget2 from "@/view/content/widgets/advance-table/Widget2.vue";
-import MixedWidget1 from "@/view/content/widgets/mixed/Widget1.vue";
-import ListWidget1 from "@/view/content/widgets/list/Widget1.vue";
-import ListWidget3 from "@/view/content/widgets/list/Widget3.vue";
-import ListWidget4 from "@/view/content/widgets/list/Widget4.vue";
-import ListWidget8 from "@/view/content/widgets/list/Widget8.vue";
-import ListWidget9 from "@/view/content/widgets/list/Widget9.vue";
-import StatsWidget7 from "@/view/content/widgets/stats/Widget7.vue";
-import StatsWidget12 from "@/view/content/widgets/stats/Widget12.vue";
+// import AdvancedTableWidget2 from "@/view/content/widgets/advance-table/Widget2.vue";
+import { db } from "../../main";
 
 export default {
   name: "dashboard",
+  data() {
+    return {
+      desserts: [],
+      dialog: false,
+      name: null,
+      lastName: null,
+      country: null,
+      email: null,
+      editContact: false,
+      modelDialog: null,
+      nameButton: null,
+      nameModal: null,
+      updateItem: {}
+    };
+  },
   components: {
-    AdvancedTableWidget2,
-    MixedWidget1,
-    ListWidget1,
-    ListWidget3,
-    ListWidget4,
-    ListWidget8,
-    ListWidget9,
-    StatsWidget7,
-    StatsWidget12
+    // CRUDTable,
+    // AdvancedTableWidget2,
+    // MixedWidget1,
+    // ListWidget1,
+    // ListWidget3,
+    // ListWidget4,
+    // ListWidget8,
+    // ListWidget9,
+    // StatsWidget7,
+    // StatsWidget12
   },
   mounted() {
     this.$store.dispatch(SET_BREADCRUMB, [{ title: "Dashboard" }]);
   },
+  created() {
+    this.getEvent();
+  },
   methods: {
-    setActiveTab1(event) {
-      this.tabIndex = this.setActiveTab(event);
-    },
-    setActiveTab2(event) {
-      this.tabIndex2 = this.setActiveTab(event);
-    },
-    /**
-     * Set current active on click
-     * @param event
-     */
-    setActiveTab(event) {
-      // get all tab links
-      const tab = event.target.closest('[role="tablist"]');
-      const links = tab.querySelectorAll(".nav-link");
-      // remove active tab links
-      for (let i = 0; i < links.length; i++) {
-        links[i].classList.remove("active");
+    async updateEvent(item) {
+      try {
+        await db
+          .collection("user")
+          .doc(item.id)
+          .update({
+            Name: this.name,
+            LastName: this.lastName,
+            Country: this.country,
+            Email: this.email
+          });
+        this.dialog = "";
+        this.nameModal = "";
+        this.nameButton = "";
+        this.updateItem = "";
+        this.name = "";
+        this.lastName = "";
+        this.country = "";
+        this.email = "";
+        this.getEvent();
+      } catch (error) {
+        console.log("Error updateEvent is-> ", error);
       }
+    },
+    async deleteEvent(item) {
+      try {
+        await db
+          .collection("user")
+          .doc(item.id)
+          .delete();
+        this.getEvent();
+      } catch (error) {
+        console.log("Error deleteEvent is-> ", error);
+      }
+    },
+    openModalUpdate(item) {
+      this.modelDialog = "updateEvent";
+      this.dialog = true;
+      this.nameModal = "Editar Usuario";
+      this.nameButton = "Editar";
+      this.updateItem = item;
+      this.name = item.Name;
+      this.lastName = item.LastName;
+      this.country = item.Country;
+      this.email = item.Email;
+    },
+    openModalAdd() {
+      console.log("IS ENTER HERE???");
 
-      // set current active tab
-      event.target.classList.add("active");
+      this.modelDialog = "addEvent";
+      this.dialog = true;
+      this.nameModal = "Agregar nuevo usuario";
+      this.nameButton = "Agregar";
+    },
+    async addEvent() {
+      try {
+        if (this.name && this.lastName && this.country && this.email) {
+          await db.collection("user").add({
+            Name: this.name,
+            LastName: this.lastName,
+            Country: this.country,
+            Email: this.email
+          });
+          this.getEvent();
 
-      // set clicked tab index to bootstrap tab
-      return parseInt(event.target.getAttribute("data-tab"));
-    }
+          this.name = null;
+          this.lastName = null;
+          this.country = null;
+          this.email = null;
+        } else {
+          console.log("Campos Oblicatorios");
+        }
+      } catch (error) {
+        console.log("Error addEvent is-> ", error);
+      }
+    },
+    async getEvent() {
+      this.desserts = [];
+      try {
+        const snapshot = await db.collection("user").get();
+
+        snapshot.forEach(doc => {
+          let eventoData = doc.data();
+          eventoData.id = doc.id;
+          this.desserts.push(eventoData);
+        });
+      } catch (error) {
+        console.log("Error getEvent is-> ", error);
+      }
+    },
   }
 };
 </script>

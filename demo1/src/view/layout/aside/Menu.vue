@@ -20,7 +20,7 @@
       </li>
     </router-link>
 
-    <router-link
+    <!-- <router-link
       to="/builder"
       v-slot="{ href, navigate, isActive, isExactActive }"
     >
@@ -38,14 +38,14 @@
           <span class="menu-text">Layout Builder</span>
         </a>
       </li>
-    </router-link>
+    </router-link> -->
 
-    <li class="menu-section">
+    <!-- <li class="menu-section">
       <h4 class="menu-text">Components</h4>
       <i class="menu-icon flaticon-more-v2"></i>
-    </li>
+    </li> -->
 
-    <li
+    <!-- <li
       aria-haspopup="true"
       data-menu-toggle="hover"
       class="menu-item menu-item-submenu"
@@ -1036,9 +1036,9 @@
           </router-link>
         </ul>
       </div>
-    </li>
+    </li> -->
 
-    <li
+    <!-- <li
       aria-haspopup="true"
       data-menu-toggle="hover"
       class="menu-item menu-item-submenu"
@@ -1569,9 +1569,9 @@
           </router-link>
         </ul>
       </div>
-    </li>
+    </li> -->
 
-    <li class="menu-section">
+    <!-- <li class="menu-section">
       <h4 class="menu-text">Custom</h4>
       <i class="menu-icon flaticon-more-v2"></i>
     </li>
@@ -1840,7 +1840,7 @@
           </router-link>
         </ul>
       </div>
-    </li>
+    </li> -->
   </ul>
 </template>
 
