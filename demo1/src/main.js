@@ -28,7 +28,23 @@ import "@/core/plugins/inline-svg";
 import "@/core/plugins/apexcharts";
 import "@/core/plugins/metronic";
 import "@mdi/font/css/materialdesignicons.css";
+import firebase from 'firebase/app';
+import 'firebase/firestore';
 
+const firebaseConfig = {
+  apiKey: "AIzaSyAHev5x1FQSCO-5geNh77VpZ45Y7DDfTP8",
+  authDomain: "ynsitu-96c1c.firebaseapp.com",
+  databaseURL: "https://ynsitu-96c1c.firebaseio.com",
+  projectId: "ynsitu-96c1c",
+  storageBucket: "ynsitu-96c1c.appspot.com",
+  messagingSenderId: "991305880184",
+  appId: "1:991305880184:web:8fef494f0818a4004d538d",
+  measurementId: "G-00TT237K20"
+};
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+export const db = firebase.firestore();
 // API service init
 ApiService.init();
 

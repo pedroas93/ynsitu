@@ -1,8 +1,8 @@
 <template>
   <div>
     <!-- begin::Sticky Toolbar -->
-    <ul class="sticky-toolbar nav flex-column pl-2 pr-2 pt-3 pb-3 mt-4">
-      <li v-b-tooltip.hover.left="'Layout builder'" class="nav-item mb-2">
+    <!-- <ul class="sticky-toolbar nav flex-column pl-2 pr-2 pt-3 pb-3 mt-4">
+      <li v-b-tooltip.hover.left="'Layout builderrrr'" class="nav-item mb-2">
         <router-link
           href="#"
           :to="{ name: 'builder' }"
@@ -20,7 +20,7 @@
           <i class="flaticon2-telegram-logo"></i>
         </a>
       </li>
-    </ul>
+    </ul> -->
     <!-- end::Sticky Toolbar -->
   </div>
 </template>
