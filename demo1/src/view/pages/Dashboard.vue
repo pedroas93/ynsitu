@@ -13,7 +13,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in desserts" :key="item.Nombre">
+          <tr v-for="item in users" :key="item.Nombre">
             <td>{{ item.Name }}</td>
             <td>{{ item.LastName }}</td>
             <td>{{ item.Email }}</td>
@@ -37,13 +37,26 @@
         <v-card>
           <v-card-title class="headline grey lighten-2" primary-title>{{nameModal}}</v-card-title>
           <v-container>
-            <v-form
-              @submit.prevent="modelDialog === 'addEvent' ? addEvent() : updateEvent(updateItem)"
-            >
-              <v-text-field type="text" label="Agregar Nombre" required v-model="name"></v-text-field>
-              <v-text-field type="text" label="Agregar Apellido" required v-model="lastName"></v-text-field>
-              <v-text-field type="text" label="Agregar E-mail" required v-model="email"></v-text-field>
-              <v-text-field type="text" label="Agregar Pais" required v-model="country"></v-text-field>
+            <v-form @submit.prevent="modelDialog === 'addEvent' ? addEvent() : updateEvent()">
+              <v-text-field type="text" label="Agregar Nombre" required v-model="$store.state.name"></v-text-field>
+              <v-text-field
+                type="text"
+                label="Agregar Apellido"
+                required
+                v-model="$store.state.lastName"
+              ></v-text-field>
+              <v-text-field
+                type="email"
+                label="Agregar E-mail"
+                required
+                v-model="emailValidate"
+              ></v-text-field>
+              <v-text-field
+                type="text"
+                label="Agregar Pais"
+                required
+                v-model="$store.state.country"
+              ></v-text-field>
               <v-btn
                 type="submit"
                 color="primary"
@@ -66,8 +79,7 @@
 <script>
 // import CRUDTable from "../content/widgets/CRUDTable";
 import { SET_BREADCRUMB } from "@/core/services/store/breadcrumbs.module";
-// import AdvancedTableWidget2 from "@/view/content/widgets/advance-table/Widget2.vue";
-import { db } from "../../main";
+import { mapActions, mapGetters, mapMutations } from "vuex";
 
 export default {
   name: "dashboard",
@@ -75,70 +87,65 @@ export default {
     return {
       desserts: [],
       dialog: false,
-      name: null,
-      lastName: null,
-      country: null,
-      email: null,
+      alert: true,
       editContact: false,
       modelDialog: null,
       nameButton: null,
       nameModal: null,
-      updateItem: {}
+      updateItem: {},
+      isValidateEmail:true, 
+      emailValidate:null
     };
-  },
-  components: {
-    // CRUDTable,
-    // AdvancedTableWidget2,
-    // MixedWidget1,
-    // ListWidget1,
-    // ListWidget3,
-    // ListWidget4,
-    // ListWidget8,
-    // ListWidget9,
-    // StatsWidget7,
-    // StatsWidget12
   },
   mounted() {
     this.$store.dispatch(SET_BREADCRUMB, [{ title: "Dashboard" }]);
   },
   created() {
-    this.getEvent();
+    this.getUsers();
+  },
+  components: {},
+  computed: {
+    ...mapGetters(["lastName", "country", "email", "users", "name", "item"])
   },
   methods: {
-    async updateEvent(item) {
-      try {
-        await db
-          .collection("user")
-          .doc(item.id)
-          .update({
-            Name: this.name,
-            LastName: this.lastName,
-            Country: this.country,
-            Email: this.email
-          });
+    ...mapActions([
+      "getUsers",
+      "addUsers",
+      "deleteUser",
+      "getEditId",
+      "updateUsers"
+    ]),
+    ...mapMutations([
+      "setId",
+      "setDataUser",
+      "setName",
+      "setLastName",
+      "setCountry",
+      "setEmail"
+    ]),
+    validateEmail(valor) {
+      if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,24}))$/.test(valor)) {
+        this.isValidateEmail = true;
+      } else {
+        alert("La dirección de email es incorrecta.");
+        this.isValidateEmail = false;
+      }
+    },
+    async updateEvent() {
+      this.validateEmail(this.emailValidate)
+      if(this.isValidateEmail){
+        this.setEmail(this.emailValidate);
+        this.updateUsers();
         this.dialog = "";
         this.nameModal = "";
         this.nameButton = "";
         this.updateItem = "";
-        this.name = "";
-        this.lastName = "";
-        this.country = "";
-        this.email = "";
-        this.getEvent();
-      } catch (error) {
-        console.log("Error updateEvent is-> ", error);
+        this.emailValidate=null;
       }
     },
     async deleteEvent(item) {
-      try {
-        await db
-          .collection("user")
-          .doc(item.id)
-          .delete();
-        this.getEvent();
-      } catch (error) {
-        console.log("Error deleteEvent is-> ", error);
-      }
+      this.setId(item.id);
+      this.deleteUser();
     },
     openModalUpdate(item) {
       this.modelDialog = "updateEvent";
@@ -146,55 +153,27 @@ export default {
       this.nameModal = "Editar Usuario";
       this.nameButton = "Editar";
       this.updateItem = item;
-      this.name = item.Name;
-      this.lastName = item.LastName;
-      this.country = item.Country;
-      this.email = item.Email;
+      this.setId(item.id);
+      this.setName(item.Name);
+      this.setLastName(item.LastName);
+      this.setCountry(item.Country);
+      this.setEmail(item.Email);
+      this.emailValidate = item.Email;
     },
     openModalAdd() {
-      console.log("IS ENTER HERE???");
-
       this.modelDialog = "addEvent";
       this.dialog = true;
       this.nameModal = "Agregar nuevo usuario";
       this.nameButton = "Agregar";
     },
     async addEvent() {
-      try {
-        if (this.name && this.lastName && this.country && this.email) {
-          await db.collection("user").add({
-            Name: this.name,
-            LastName: this.lastName,
-            Country: this.country,
-            Email: this.email
-          });
-          this.getEvent();
-
-          this.name = null;
-          this.lastName = null;
-          this.country = null;
-          this.email = null;
-        } else {
-          console.log("Campos Oblicatorios");
-        }
-      } catch (error) {
-        console.log("Error addEvent is-> ", error);
+      this.validateEmail(this.emailValidate)
+      if(this.isValidateEmail){
+        this.setEmail(this.emailValidate);
+        this.addUsers();
+        this.emailValidate=null;
       }
-    },
-    async getEvent() {
-      this.desserts = [];
-      try {
-        const snapshot = await db.collection("user").get();
-
-        snapshot.forEach(doc => {
-          let eventoData = doc.data();
-          eventoData.id = doc.id;
-          this.desserts.push(eventoData);
-        });
-      } catch (error) {
-        console.log("Error getEvent is-> ", error);
-      }
-    },
+    }
   }
 };
 </script>
