@@ -7,9 +7,11 @@ export const SET_CLASSNAME_BY_POSITION = "setClassNameByPosition";
 
 export default {
   state: {
-    classes: {}
+    classes: {},
+    spell: ["Hello", "TEST"]
   },
   getters: {
+    singleSpell: state => state.spell,
     getClasses: state => position => {
       if (typeof position !== "undefined") {
         return state.classes[position];
